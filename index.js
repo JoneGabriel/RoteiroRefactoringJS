@@ -1,15 +1,28 @@
 const { readFileSync } = require('fs');
 
+function calcularTotalCreditos(apresentacoes, pecas){
+  let total = 0;
+  for (let apre of apresentacoes) {
+    
+    total+=calcularCredito(apre, pecas);
+  }
 
+  return total;
+}
 
-function gerarFaturaStr (fatura, pecas) {
-    let totalFatura = 0;
-    let creditos = 0;
-    let faturaStr = `Fatura ${fatura.cliente}\n`;
+function calcularTotalFatura(apresentacoes, pecas) {
+  let total = 0;
+  for (let apre of apresentacoes) {
+    
+    total+=calcularTotalApresentacao(apre, pecas);
+  }
 
-    function calcularTotalApresentacao(apre){
+  return total;
+}
+
+ function calcularTotalApresentacao(apre, pecas){
       let total = 0;
-      switch (getPeca(apre).tipo) {
+      switch (getPeca(apre, pecas).tipo) {
         case "tragedia":
           total = 40000;
           if (apre.audiencia > 30) {
@@ -24,20 +37,20 @@ function gerarFaturaStr (fatura, pecas) {
           total += 300 * apre.audiencia;
           break;
         default:
-            throw new Error(`Peça desconhecia: ${getPeca(apre).tipo}`);
+            throw new Error(`Peça desconhecia: ${getPeca(apre, pecas).tipo}`);
         }
 
       return total;
   }
 
-  function getPeca(apresentacao) {
+  function getPeca(apresentacao, pecas) {
     return pecas[apresentacao.id];
   } 
 
-  function calcularCredito(apre) {
+  function calcularCredito(apre, pecas) {
     let creditos = 0;
     creditos += Math.max(apre.audiencia - 30, 0);
-    if (getPeca(apre).tipo === "comedia") 
+    if (getPeca(apre, pecas).tipo === "comedia") 
        creditos += Math.floor(apre.audiencia / 5);
     return creditos;   
   }
@@ -48,19 +61,17 @@ function gerarFaturaStr (fatura, pecas) {
         minimumFractionDigits: 2 }).format(valor/100);
   }
 
-  for (let apre of fatura.apresentacoes) {
+function gerarFaturaStr (fatura, pecas) {
 
-      let total =  calcularTotalApresentacao(apre);
+    let faturaStr = `Fatura ${fatura.cliente}\n`;
 
-     
-      creditos += calcularCredito(apre);
-
-      // mais uma linha da fatura
-      faturaStr += `  ${getPeca(apre).nome}: ${formatarMoeda(total/100)} (${apre.audiencia} assentos)\n`;
-      totalFatura += total;
+    for (let apre of fatura.apresentacoes) {
+      faturaStr += `  ${getPeca(apre, pecas).nome}: ${formatarMoeda(calcularTotalApresentacao(apre, pecas))} (${apre.audiencia} assentos)\n`;
     }
-    faturaStr += `Valor total: ${formatarMoeda(totalFatura/100)}\n`;
-    faturaStr += `Créditos acumulados: ${creditos} \n`;
+
+    faturaStr += `Valor total: ${formatarMoeda(calcularTotalFatura(fatura.apresentacoes, pecas))}\n`;
+    faturaStr += `Créditos acumulados: ${calcularTotalCreditos(fatura.apresentacoes, pecas)} \n`;
+
     return faturaStr;
   }
 
