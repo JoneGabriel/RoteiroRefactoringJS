@@ -60,6 +60,21 @@ function calcularTotalFatura(apresentacoes, pecas) {
       { style: "currency", currency: "BRL",
         minimumFractionDigits: 2 }).format(valor/100);
   }
+  function gerarFaturaHTML(fatura, pecas) {
+    let body = `<p> Fatura UFMG </p> \n<ul>\n`;
+    
+      let faturaStr = `Fatura ${fatura.cliente}\n`;
+
+      for (let apre of fatura.apresentacoes) {
+        body += `<li> ${getPeca(apre, pecas).nome}: ${formatarMoeda(calcularTotalApresentacao(apre, pecas))} (${apre.audiencia} assentos) </li>\n`;
+      }
+      body+=`</ul>\n`
+      body += `<p>Valor total: ${formatarMoeda(calcularTotalFatura(fatura.apresentacoes, pecas))}</p>\n`;
+      body += `<p>Créditos acumulados: ${calcularTotalCreditos(fatura.apresentacoes, pecas)}</p>\n`;
+      body+=`</html> \n`
+      return body;
+
+  }
 
 function gerarFaturaStr (fatura, pecas) {
 
@@ -78,4 +93,8 @@ function gerarFaturaStr (fatura, pecas) {
 const faturas = JSON.parse(readFileSync('./faturas.json'));
 const pecas = JSON.parse(readFileSync('./pecas.json'));
 const faturaStr = gerarFaturaStr(faturas, pecas);
+const faturaHtml = gerarFaturaHTML(faturas, pecas);
+
 console.log(faturaStr);
+console.log(faturaHtml);
+
